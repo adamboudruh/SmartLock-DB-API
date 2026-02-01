@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>SmartLock_DB_API</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- EF Core SQL Server provider -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.0">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
+    <!-- For generating EF migrations during development -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
+    <!-- Optional: Swagger for API exploration -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
+</Project>
