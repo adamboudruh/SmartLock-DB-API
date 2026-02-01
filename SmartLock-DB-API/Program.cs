@@ -35,6 +35,39 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+try
+{
+    var applyMigrations = app.Configuration.GetValue<bool>("APPLY_MIGRATIONS", false);
+    if (applyMigrations)
+    {
+        using var scope = app.Services.CreateScope();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        try
+        {
+            logger.LogInformation("APPLY_MIGRATIONS is true — attempting to apply pending EF Core migrations...");
+            var db = scope.ServiceProvider.GetRequiredService<SmartLockDbContext>();
+            db.Database.Migrate();
+            logger.LogInformation("EF Core migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while applying migrations on startup.");
+            // Rethrow to avoid running app in an inconsistent state. Remove throw if you prefer to continue.
+            throw;
+        }
+    }
+    else
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("APPLY_MIGRATIONS is false (or not set) — skipping automatic EF Core migrations.");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Fatal error during migration step: {ex}");
+    throw;
+}
+
 // Middleware
 if (app.Environment.IsDevelopment())
 {
