@@ -5,9 +5,9 @@ using SmartLock.DBApi.Models;
 using SmartLock.DBApi.DataAccess;
 using Microsoft.Extensions.Logging;
 using SmartLock.DBApi.Operations;
-using SmartLock_DB_API.Models.Request;
+using SmartLock.DBApi.Models.Request;
 using System.Net;
-using SmartLock_DB_API.Models.Response;
+using SmartLock.DBApi.Models.Response;
 
 namespace SmartLock.DBApi.Controllers
 {

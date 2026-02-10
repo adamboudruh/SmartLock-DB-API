@@ -4,8 +4,7 @@ using Microsoft.Extensions.Logging;
 using SmartLock.DBApi.Data;
 using SmartLock.DBApi.Models;
 using SmartLock.DBApi.Models.Response;
-using SmartLock_DB_API.Models.Request;
-using SmartLock_DB_API.Models.Response;
+using SmartLock.DBApi.Models.Request;
 
 namespace SmartLock.DBApi.Operations
 {
@@ -70,7 +69,7 @@ namespace SmartLock.DBApi.Operations
                 };
             }
 
-            var newKeyEntry = new DataAccess.KeyEntry
+            var newKeyEntry = new DataAccess.RfidKeyEntry
             {
                 Name = insertKeyEntry.Name,
                 TagUid = insertKeyEntry.TagUid,

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SmartLock_DB_API.Models.Request
+namespace SmartLock.DBApi.Models.Request
 {
     public class InsertKeyEntry
     {
