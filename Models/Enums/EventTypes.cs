@@ -2,9 +2,12 @@
 {
     public enum EventTypes
     {
-        Lock = 1,
-        Unlock = 2,
-        Open = 3,
-        Close = 4
+        ButtonLock = 1,
+        RemoteLock = 2,
+        KeyUnlock = 3,
+        RemoteUnlock = 4,
+        Unlock = 5,
+        Open = 6,
+        Close = 7
     }
 }

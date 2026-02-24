@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartLock.DBApi.Data;
 
@@ -11,9 +12,11 @@ using SmartLock.DBApi.Data;
 namespace SmartLockDBAPI.Migrations
 {
     [DbContext(typeof(SmartLockDbContext))]
-    partial class SmartLockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260219070938_Make_DeviceId_Nullable")]
+    partial class Make_DeviceId_Nullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,7 +46,7 @@ namespace SmartLockDBAPI.Migrations
 
                     b.HasKey("DeviceId");
 
-                    b.ToTable("Devices", (string)null);
+                    b.ToTable("Devices");
                 });
 
             modelBuilder.Entity("SmartLock.DBApi.DataAccess.Event", b =>
@@ -69,7 +72,7 @@ namespace SmartLockDBAPI.Migrations
 
                     b.HasIndex("DeviceId", "EventTypeId");
 
-                    b.ToTable("Events", (string)null);
+                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("SmartLock.DBApi.DataAccess.EventType", b =>
@@ -87,7 +90,7 @@ namespace SmartLockDBAPI.Migrations
 
                     b.HasKey("EventTypeId");
 
-                    b.ToTable("EventTypes", (string)null);
+                    b.ToTable("EventTypes");
 
                     b.HasData(
                         new
@@ -155,7 +158,7 @@ namespace SmartLockDBAPI.Migrations
                     b.HasIndex("TagUid")
                         .IsUnique();
 
-                    b.ToTable("Keys", (string)null);
+                    b.ToTable("Keys");
                 });
 
             modelBuilder.Entity("SmartLock.DBApi.DataAccess.Event", b =>

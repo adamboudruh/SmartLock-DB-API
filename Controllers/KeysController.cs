@@ -1,19 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SmartLock.DBApi.Data;
-using SmartLock.DBApi.Models;
-using SmartLock.DBApi.DataAccess;
 using Microsoft.Extensions.Logging;
-using SmartLock.DBApi.Operations;
+using SmartLock.DBApi.Data;
+using SmartLock.DBApi.DataAccess;
+using SmartLock.DBApi.Models;
 using SmartLock.DBApi.Models.Request;
-using System.Net;
 using SmartLock.DBApi.Models.Response;
+using SmartLock.DBApi.Operations;
+using System.Net;
 
 namespace SmartLock.DBApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class KeysController
+    public class KeysController : ControllerBase
     {
         private readonly ILogger<KeysController> _logger;
         private readonly IKeysOperations _keysOperations;
@@ -41,15 +42,15 @@ namespace SmartLock.DBApi.Controllers
         // POST /keys
         // body: { name, tagUid }
         [HttpPost]
-        [ProducesResponseType(typeof(Status<ResponseInsertKeyEntry>), 200)]
+        [ProducesResponseType(typeof(Status<ResponseInsertKeyEntry>), 201)]
         [ProducesResponseType(typeof(Status<ResponseInsertKeyEntry>), 400)]
-        public async Task<IActionResult> Create([FromBody] InsertKeyEntry insertKeyEntry)
+        public async Task<IActionResult> InsertKey([FromBody] InsertKeyEntry insertKeyEntry)
         {
             _logger.LogInformation("Creating new key entry");
             var result = await _keysOperations.InsertKeyEntry(insertKeyEntry);
             return result.StatusCode switch
             {
-                HttpStatusCode.OK => new OkObjectResult(result),
+                HttpStatusCode.Created => CreatedAtAction(nameof(InsertKey), new { id = result.Data?.KeyId }, result),
                 HttpStatusCode.BadRequest => new BadRequestObjectResult(result),
                 _ => new StatusCodeResult((int)result.StatusCode)
             };

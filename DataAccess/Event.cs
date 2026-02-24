@@ -13,8 +13,7 @@ namespace SmartLock.DBApi.DataAccess
         [Required]
         public int EventTypeId { get; set; }
 
-        [Required]
-        public Guid DeviceId { get; set; }
+        public Guid? DeviceId { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
