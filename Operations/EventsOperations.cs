@@ -40,12 +40,17 @@ namespace SmartLock.DBApi.Operations
                     Data = null
                 };
             }
+            _logger.LogInformation("uid: ", request.TagUID);
+
+            // Find the key by TagUid
+            var key = await _db.Keys.FirstOrDefaultAsync(k => k.TagUid == request.TagUID);
 
             var newEvent = new DataAccess.Event
             {
                 EventTypeId = request.EventTypeId,
                 DeviceId = request.DeviceId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                KeyId = key?.KeyId
             };
 
             _db.Events.Add(newEvent);

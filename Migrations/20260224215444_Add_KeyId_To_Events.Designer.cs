@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartLock.DBApi.Data;
 
@@ -11,9 +12,11 @@ using SmartLock.DBApi.Data;
 namespace SmartLockDBAPI.Migrations
 {
     [DbContext(typeof(SmartLockDbContext))]
-    partial class SmartLockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224215444_Add_KeyId_To_Events")]
+    partial class Add_KeyId_To_Events
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -123,11 +126,16 @@ namespace SmartLockDBAPI.Migrations
                         new
                         {
                             EventTypeId = 6,
-                            Name = "Open"
+                            Name = "Unlock"
                         },
                         new
                         {
                             EventTypeId = 7,
+                            Name = "Open"
+                        },
+                        new
+                        {
+                            EventTypeId = 8,
                             Name = "Close"
                         });
                 });

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartLock.DBApi.Data;
 
@@ -11,9 +12,11 @@ using SmartLock.DBApi.Data;
 namespace SmartLockDBAPI.Migrations
 {
     [DbContext(typeof(SmartLockDbContext))]
-    partial class SmartLockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224231042_Update_Enums_again")]
+    partial class Update_Enums_again
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

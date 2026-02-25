@@ -13,5 +13,7 @@ namespace SmartLock.DBApi.Models.Request
         public int EventTypeId { get; set; } // E.g., 1 = ButtonLock, 2 = RemoteLock, etc.
 
         public Guid? DeviceId { get; set; } // The Device GUID
+
+        public String? TagUID { get; set; } // The RFID tag UID, if applicable
     }
 }

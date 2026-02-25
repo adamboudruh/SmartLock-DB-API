@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartLock.DBApi.Data;
 
@@ -11,9 +12,11 @@ using SmartLock.DBApi.Data;
 namespace SmartLockDBAPI.Migrations
 {
     [DbContext(typeof(SmartLockDbContext))]
-    partial class SmartLockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224204937_Add_Fail_Success_Unlock_EventType")]
+    partial class Add_Fail_Success_Unlock_EventType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,14 +66,9 @@ namespace SmartLockDBAPI.Migrations
                     b.Property<int>("EventTypeId")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("KeyId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("EventId");
 
                     b.HasIndex("EventTypeId");
-
-                    b.HasIndex("KeyId");
 
                     b.HasIndex("DeviceId", "EventTypeId");
 
@@ -123,11 +121,16 @@ namespace SmartLockDBAPI.Migrations
                         new
                         {
                             EventTypeId = 6,
-                            Name = "Open"
+                            Name = "Unlock"
                         },
                         new
                         {
                             EventTypeId = 7,
+                            Name = "Open"
+                        },
+                        new
+                        {
+                            EventTypeId = 8,
                             Name = "Close"
                         });
                 });
@@ -145,9 +148,6 @@ namespace SmartLockDBAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
-
-                    b.Property<DateTime>("LastUsed")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .HasMaxLength(200)
@@ -179,16 +179,9 @@ namespace SmartLockDBAPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SmartLock.DBApi.DataAccess.RfidKeyEntry", "Key")
-                        .WithMany("Events")
-                        .HasForeignKey("KeyId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Device");
 
                     b.Navigation("EventType");
-
-                    b.Navigation("Key");
                 });
 
             modelBuilder.Entity("SmartLock.DBApi.DataAccess.Device", b =>
@@ -197,11 +190,6 @@ namespace SmartLockDBAPI.Migrations
                 });
 
             modelBuilder.Entity("SmartLock.DBApi.DataAccess.EventType", b =>
-                {
-                    b.Navigation("Events");
-                });
-
-            modelBuilder.Entity("SmartLock.DBApi.DataAccess.RfidKeyEntry", b =>
                 {
                     b.Navigation("Events");
                 });

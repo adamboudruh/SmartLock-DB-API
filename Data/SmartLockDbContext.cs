@@ -76,6 +76,11 @@ namespace SmartLock.DBApi.Data
                       .HasForeignKey(e => e.DeviceId)
                       .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(e => e.Key)
+                      .WithMany(k => k.Events)
+                      .HasForeignKey(e => e.KeyId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
                 entity.HasIndex(e => new { e.DeviceId, e.EventTypeId });
             });
         }

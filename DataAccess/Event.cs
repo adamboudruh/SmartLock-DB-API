@@ -17,6 +17,11 @@ namespace SmartLock.DBApi.DataAccess
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public Guid? KeyId { get; set; }
+
+        [ForeignKey(nameof(KeyId))]
+        public RfidKeyEntry? Key { get; set; }
+
         [ForeignKey(nameof(EventTypeId))]
         public EventType? EventType { get; set; }
 
