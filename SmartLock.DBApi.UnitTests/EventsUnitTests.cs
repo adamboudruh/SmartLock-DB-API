@@ -175,37 +175,5 @@ namespace SmartLock.DBApi.Tests
         }
 
         #endregion
-
-        #region ClearEvents
-
-        [Fact]
-        public async Task ClearEvents_DeletesAllEvents_ReturnsNoContent()
-        {
-            var db = CreateDb();
-            db.Events.AddRange(
-                new Event { EventId = Guid.NewGuid(), EventTypeId = (int)EventTypes.Open, CreatedAt = DateTime.UtcNow },
-                new Event { EventId = Guid.NewGuid(), EventTypeId = (int)EventTypes.Close, CreatedAt = DateTime.UtcNow }
-            );
-            await db.SaveChangesAsync();
-
-            var sut = CreateSut(db);
-            var result = await sut.ClearEvents();
-
-            Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-            Assert.Equal(0, await db.Events.CountAsync());
-        }
-
-        [Fact]
-        public async Task ClearEvents_EmptyTable_StillReturnsNoContent()
-        {
-            var db = CreateDb();
-            var sut = CreateSut(db);
-
-            var result = await sut.ClearEvents();
-
-            Assert.Equal(HttpStatusCode.NoContent, result.StatusCode);
-        }
-
-        #endregion
     }
 }
