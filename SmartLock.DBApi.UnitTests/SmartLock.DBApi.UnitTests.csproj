@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SmartLock.DBApi\SmartLock-DB-API.csproj" />
+    <ProjectReference Include="..\SmartLock.DBApi\SmartLock.DBApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>
