@@ -12,6 +12,7 @@ namespace SmartLock.DBApi.Operations
     {
         Task<Status<List<ResponseKeyEntry>>> GetAllKeyEntries();
         Task<Status<ResponseInsertKeyEntry>> InsertKeyEntry(InsertKeyEntry insertKeyEntry);
+        Task<Status<object>> DeleteKeyEntry(Guid id);
     }
     public class KeysOperations : IKeysOperations
     {
@@ -87,6 +88,31 @@ namespace SmartLock.DBApi.Operations
             {
                 StatusCode = System.Net.HttpStatusCode.Created,
                 Data = responseData
+            };
+        }
+
+        public async Task<Status<object>> DeleteKeyEntry(Guid id)
+        {
+            _logger.LogInformation("Deleting key entry with id {Id}", id);
+            var key = await _db.Keys.FindAsync(id);
+            if (key == null)
+            {
+                _logger.LogWarning("DeleteKeyEntry failed: Key with id {Id} not found.", id);
+                return new Status<object>
+                {
+                    StatusCode = System.Net.HttpStatusCode.NotFound,
+                    StatusDetails = new List<string> { $"Key with id {id} not found." },
+                    Data = null
+                };
+            }
+
+            _db.Keys.Remove(key);
+            await _db.SaveChangesAsync();
+
+            return new Status<object>
+            {
+                StatusCode = System.Net.HttpStatusCode.NoContent,
+                Data = null
             };
         }
     }

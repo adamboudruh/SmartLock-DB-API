@@ -56,6 +56,22 @@ namespace SmartLock.DBApi.Controllers
             };
         }
 
+        // DELETE /keys/{id}
+        [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> DeleteKey(int id)
+        {
+            _logger.LogInformation("Deleting key with id {Id}", id);
+            var result = await _keysOperations.DeleteKeyEntry(new Guid(id.ToString()));
+            return result.StatusCode switch
+            {
+                HttpStatusCode.NoContent => new NoContentResult(),
+                HttpStatusCode.NotFound => new NotFoundObjectResult(result),
+                _ => new StatusCodeResult((int)result.StatusCode)
+            };
+        }
+
         // GET /keys/test
         [HttpGet("test")]
         [ProducesResponseType(typeof(string), 200)]

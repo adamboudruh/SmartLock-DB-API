@@ -27,7 +27,7 @@ namespace SmartLock.DBApi.Controllers
         // POST /events
         // body: { name, tagUid }
         [HttpPost]
-        [ProducesResponseType(typeof(Status<ResponseInsertEvent>), 202)]
+        [ProducesResponseType(typeof(Status<ResponseInsertEvent>), 201)]
         [ProducesResponseType(typeof(Status<ResponseInsertEvent>), 400)]
         public async Task<IActionResult> InsertEvent([FromBody] InsertEvent insertEvent)
         {
@@ -37,6 +37,34 @@ namespace SmartLock.DBApi.Controllers
             {
                 HttpStatusCode.Created => CreatedAtAction(nameof(InsertEvent), new { id = result.Data?.EventId }, result),
                 HttpStatusCode.BadRequest => new BadRequestObjectResult(result),
+                _ => new StatusCodeResult((int)result.StatusCode)
+            };
+        }
+
+        // GET /events
+        [HttpGet]
+        [ProducesResponseType(typeof(Status<List<ResponseEvent>>), 200)]
+        public async Task<IActionResult> GetAllEvents()
+        {
+            _logger.LogInformation("Fetching all events from database");
+            var result = await _eventsOperations.GetAllEvents();
+            return result.StatusCode switch
+            {
+                HttpStatusCode.OK => new OkObjectResult(result),
+                _ => new StatusCodeResult((int)result.StatusCode)
+            };
+        }
+
+        // DELETE /events
+        [HttpDelete]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> ClearEvents()
+        {
+            _logger.LogInformation("Clearing all events from database");
+            var result = await _eventsOperations.ClearEvents();
+            return result.StatusCode switch
+            {
+                HttpStatusCode.NoContent => new NoContentResult(),
                 _ => new StatusCodeResult((int)result.StatusCode)
             };
         }

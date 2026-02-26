@@ -13,7 +13,9 @@ namespace SmartLock.DBApi.Operations
 {
     public interface IEventsOperations 
     {
-        Task<Status<ResponseInsertEvent>> InsertEvent(InsertEvent request);
+        Task<Status<ResponseInsertEvent>> InsertEvent(InsertEvent request); 
+        Task<Status<List<ResponseEvent>>> GetAllEvents();
+        Task<Status<object>> ClearEvents();
     }
     public class EventsOperations : IEventsOperations
     {
@@ -63,6 +65,40 @@ namespace SmartLock.DBApi.Operations
             {
                 StatusCode = System.Net.HttpStatusCode.Created,
                 Data = responseData
+            };
+        }
+
+        public async Task<Status<List<ResponseEvent>>> GetAllEvents()
+        {
+            _logger.LogInformation("Fetching all events from database.");
+            var events = await _db.Events
+                .Include(e => e.Key)           // ← join key name if present
+                .OrderByDescending(e => e.CreatedAt)
+                .ToListAsync();
+
+            return new Status<List<ResponseEvent>>
+            {
+                StatusCode = System.Net.HttpStatusCode.OK,
+                Data = events.Select(e => new ResponseEvent
+                {
+                    EventId = e.EventId,
+                    EventType = Enum.GetName(typeof(EventTypes), e.EventTypeId) ?? e.EventTypeId.ToString(),
+                    DeviceId = e.DeviceId,
+                    KeyId = e.KeyId,
+                    KeyName = e.Key?.Name,  // ← null if no key associated
+                    CreatedAt = e.CreatedAt
+                }).ToList()
+            };
+        }
+
+        public async Task<Status<object>> ClearEvents()
+        {
+            _logger.LogInformation("Clearing all events from database.");
+            await _db.Events.ExecuteDeleteAsync(); // ← EF Core 7+ bulk delete, no load needed
+            return new Status<object>
+            {
+                StatusCode = System.Net.HttpStatusCode.NoContent,
+                Data = null
             };
         }
 
