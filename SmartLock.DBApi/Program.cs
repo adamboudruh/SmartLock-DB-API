@@ -25,6 +25,7 @@ builder.Services.AddDbContext<SmartLockDbContext>(options =>
 // Register operations
 builder.Services.AddScoped<IKeysOperations, KeysOperations>();
 builder.Services.AddScoped<IEventsOperations, EventsOperations>();
+builder.Services.AddScoped<IDevicesOperations, DevicesOperations>(); 
 
 // Allow local dev CORS (adjust for production)
 builder.Services.AddCors(options =>
