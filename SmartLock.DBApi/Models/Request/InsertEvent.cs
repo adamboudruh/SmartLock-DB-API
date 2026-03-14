@@ -14,6 +14,6 @@ namespace SmartLock.DBApi.Models.Request
 
         public Guid? DeviceId { get; set; } // The Device GUID
 
-        public String? TagUID { get; set; } // The RFID tag UID, if applicable
+        public String? TagUid { get; set; } // The RFID tag UID, if applicable
     }
 }

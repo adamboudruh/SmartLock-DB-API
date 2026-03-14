@@ -42,10 +42,10 @@ namespace SmartLock.DBApi.Operations
                     Data = null
                 };
             }
-            _logger.LogInformation("uid: ", request.TagUID);
+            _logger.LogInformation("uid: ", request.TagUid);
 
             // Find the key by TagUid
-            var key = await _db.Keys.FirstOrDefaultAsync(k => k.TagUid == request.TagUID);
+            var key = await _db.Keys.FirstOrDefaultAsync(k => k.TagUid == request.TagUid);
 
             var newEvent = new DataAccess.Event
             {

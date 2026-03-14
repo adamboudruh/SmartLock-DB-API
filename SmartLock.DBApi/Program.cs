@@ -1,11 +1,15 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using SmartLock.DBApi.Data;
 using SmartLock.DBApi.Operations;
-using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,8 +40,34 @@ builder.Services.AddCors(options =>
     });
 });
 
+// JWT Authentication configured
+var publicKeyPem = builder.Configuration["BACKEND_PUBLIC_KEY"]
+    ?? File.ReadAllText("public.pem");
+var rsa = RSA.Create();
+rsa.ImportFromPem(publicKeyPem);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = "smartlock-backend",
+            ValidateAudience = false,
+            ValidateLifetime = true,  // enforces expiresIn: '30s'
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new RsaSecurityKey(rsa),
+        };
+    });
+
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build());
+
 var app = builder.Build();
 
+// Apply pending EF Core migrations on startup
 try
 {
     var applyMigrations = app.Configuration.GetValue<bool>("APPLY_MIGRATIONS", false);
@@ -78,6 +108,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseAuthentication();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

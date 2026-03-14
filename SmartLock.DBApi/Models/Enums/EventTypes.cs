@@ -6,8 +6,9 @@
         RemoteLock = 2,
         SuccessKeyUnlock = 3,
         FailKeyUnlock = 4,
-        RemoteUnlock = 5,
-        Open = 6,
-        Close = 7
+        ButtonUnlock = 5,
+        RemoteUnlock = 6,
+        Open = 7,
+        Close = 8,
     }
 }

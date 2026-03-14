@@ -60,10 +60,10 @@ namespace SmartLock.DBApi.Controllers
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteKey(int id)
+        public async Task<IActionResult> DeleteKey(Guid id)
         {
             _logger.LogInformation("Deleting key with id {Id}", id);
-            var result = await _keysOperations.DeleteKeyEntry(new Guid(id.ToString()));
+            var result = await _keysOperations.DeleteKeyEntry(id);
             return result.StatusCode switch
             {
                 HttpStatusCode.NoContent => new NoContentResult(),
