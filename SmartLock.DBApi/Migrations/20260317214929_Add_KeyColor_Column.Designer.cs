@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartLock.DBApi.Data;
 
@@ -11,9 +12,11 @@ using SmartLock.DBApi.Data;
 namespace SmartLockDBAPI.Migrations
 {
     [DbContext(typeof(SmartLockDbContext))]
-    partial class SmartLockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260317214929_Add_KeyColor_Column")]
+    partial class Add_KeyColor_Column
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -135,36 +138,31 @@ namespace SmartLockDBAPI.Migrations
                         new
                         {
                             EventTypeId = 3,
-                            Name = "AutoLock"
-                        },
-                        new
-                        {
-                            EventTypeId = 4,
                             Name = "SuccessKeyUnlock"
                         },
                         new
                         {
-                            EventTypeId = 5,
+                            EventTypeId = 4,
                             Name = "FailKeyUnlock"
                         },
                         new
                         {
-                            EventTypeId = 6,
+                            EventTypeId = 5,
                             Name = "ButtonUnlock"
                         },
                         new
                         {
-                            EventTypeId = 7,
+                            EventTypeId = 6,
                             Name = "RemoteUnlock"
                         },
                         new
                         {
-                            EventTypeId = 8,
+                            EventTypeId = 7,
                             Name = "Open"
                         },
                         new
                         {
-                            EventTypeId = 9,
+                            EventTypeId = 8,
                             Name = "Close"
                         });
                 });

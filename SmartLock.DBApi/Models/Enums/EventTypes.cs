@@ -4,11 +4,12 @@
     {
         ButtonLock = 1,
         RemoteLock = 2,
-        SuccessKeyUnlock = 3,
-        FailKeyUnlock = 4,
-        ButtonUnlock = 5,
-        RemoteUnlock = 6,
-        Open = 7,
-        Close = 8,
+        AutoLock = 3,
+        SuccessKeyUnlock = 4,
+        FailKeyUnlock = 5,
+        ButtonUnlock = 6,
+        RemoteUnlock = 7,
+        Open = 8,
+        Close = 9,
     }
 }

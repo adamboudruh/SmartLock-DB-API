@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using SmartLock.DBApi.Data;
-using SmartLock.DBApi.DataAccess;
+﻿using Microsoft.AspNetCore.Mvc;
 using SmartLock.DBApi.Models;
 using SmartLock.DBApi.Models.Request;
 using SmartLock.DBApi.Models.Response;
@@ -34,8 +29,8 @@ namespace SmartLock.DBApi.Controllers
 
             return result.StatusCode switch
             {
-                HttpStatusCode.OK => new OkObjectResult(result),
-                _ => new StatusCodeResult((int)result.StatusCode)
+                HttpStatusCode.OK => Ok(result),
+                _ => StatusCode((int)result.StatusCode, result)
             };
         }
 
@@ -44,31 +39,16 @@ namespace SmartLock.DBApi.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(Status<ResponseInsertKeyEntry>), 201)]
         [ProducesResponseType(typeof(Status<ResponseInsertKeyEntry>), 400)]
-        public async Task<IActionResult> InsertKey([FromBody] InsertKeyEntry insertKeyEntry)
+        public async Task<IActionResult> Create([FromBody] InsertKeyEntry insertKeyEntry)
         {
             _logger.LogInformation("Creating new key entry");
             var result = await _keysOperations.InsertKeyEntry(insertKeyEntry);
             return result.StatusCode switch
             {
-                HttpStatusCode.Created => CreatedAtAction(nameof(InsertKey), new { id = result.Data?.KeyId }, result),
-                HttpStatusCode.BadRequest => new BadRequestObjectResult(result),
-                _ => new StatusCodeResult((int)result.StatusCode)
-            };
-        }
-
-        // DELETE /keys/{id}
-        [HttpDelete("{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteKey(Guid id)
-        {
-            _logger.LogInformation("Deleting key with id {Id}", id);
-            var result = await _keysOperations.DeleteKeyEntry(id);
-            return result.StatusCode switch
-            {
-                HttpStatusCode.NoContent => new NoContentResult(),
-                HttpStatusCode.NotFound => new NotFoundObjectResult(result),
-                _ => new StatusCodeResult((int)result.StatusCode)
+                HttpStatusCode.OK => Ok(result),
+                HttpStatusCode.Created => StatusCode((int)result.StatusCode, result),
+                HttpStatusCode.BadRequest => BadRequest(result),
+                _ => StatusCode((int)result.StatusCode, result)
             };
         }
 
@@ -78,7 +58,7 @@ namespace SmartLock.DBApi.Controllers
         public IActionResult GetTest()
         {
             _logger.LogInformation("Testing database connection by fetching all keys");
-            return new OkObjectResult("Test successful, consider this endpoint reached!");
+            return Ok("Test successful, consider this endpoint reached!");
         }
     }
 }

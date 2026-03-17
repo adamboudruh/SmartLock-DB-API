@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using SmartLock.DBApi.Utils;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace SmartLock.DBApi.Models.Request
 {
@@ -16,6 +14,31 @@ namespace SmartLock.DBApi.Models.Request
 
         public String? TagUid { get; set; } // RFID tag UID, if applicable
 
-        public DateTime? CreatedAt { get; set; } 
+        private DateTime? _createdAt;
+
+        [JsonConverter(typeof(NullableDateTimeJsonConverter))]
+        public DateTime? CreatedAt
+        {
+            get => _createdAt;
+            set
+            {
+                if (value.HasValue)
+                    _createdAt = DateTime.SpecifyKind(value.Value, DateTimeKind.Utc);
+                else
+                    _createdAt = null;
+            }
+        }
+
+        public void ParseCreatedAt(string input)
+        {
+            if (DateTime.TryParse(input, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out DateTime parsedUtc))
+            {
+                CreatedAt = DateTime.SpecifyKind(parsedUtc, DateTimeKind.Utc);
+            }
+            else
+            {
+                throw new FormatException($"Invalid timestamp: {input}");
+            }
+        }
     }
 }

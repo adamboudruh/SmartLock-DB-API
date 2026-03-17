@@ -1,10 +1,12 @@
-﻿using System.Formats.Asn1;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SmartLock.DBApi.Data;
 using SmartLock.DBApi.Models;
-using SmartLock.DBApi.Models.Response;
 using SmartLock.DBApi.Models.Request;
+using SmartLock.DBApi.Models.Response;
+using System.Drawing;
+using System.Formats.Asn1;
+using System.Net;
 
 namespace SmartLock.DBApi.Operations
 {
@@ -12,7 +14,7 @@ namespace SmartLock.DBApi.Operations
     {
         Task<Status<List<ResponseKeyEntry>>> GetAllKeyEntries();
         Task<Status<ResponseInsertKeyEntry>> InsertKeyEntry(InsertKeyEntry insertKeyEntry);
-        Task<Status<object>> DeleteKeyEntry(Guid id);
+        Task<Status<string>> DeleteKeyEntry(Guid id);
     }
     public class KeysOperations : IKeysOperations
     {
@@ -40,6 +42,7 @@ namespace SmartLock.DBApi.Operations
                     KeyId = k.KeyId,
                     Name = k.Name,
                     TagUid = k.TagUid,
+                    Color = k.Color,
                     CreatedAt = k.CreatedAt
                 }).ToList()
             };
@@ -70,10 +73,22 @@ namespace SmartLock.DBApi.Operations
                 };
             }
 
+            var duplicateKey = await _db.Keys.FirstOrDefaultAsync(k => k.TagUid == insertKeyEntry.TagUid);
+            if (duplicateKey != null)
+            {
+                _logger.LogWarning("InsertKeyEntry failed: Key with UID already exists (name: {Name}).", duplicateKey.Name);
+                return new Status<ResponseInsertKeyEntry>
+                {
+                    StatusCode = HttpStatusCode.Conflict,
+                    StatusDetails = new List<string> { $"A key with this UID already exists (registered as \"{duplicateKey.Name}\")." }
+                };
+            }
+
             var newKeyEntry = new DataAccess.RfidKeyEntry
             {
                 Name = insertKeyEntry.Name,
                 TagUid = insertKeyEntry.TagUid,
+                Color = insertKeyEntry.Color,
                 IsValid = true,
                 KeyId = Guid.NewGuid(),
                 CreatedAt = DateTime.UtcNow
@@ -91,28 +106,37 @@ namespace SmartLock.DBApi.Operations
             };
         }
 
-        public async Task<Status<object>> DeleteKeyEntry(Guid id)
+        public async Task<Status<string>> DeleteKeyEntry(Guid id)
         {
-            _logger.LogInformation("Deleting key entry with id {Id}", id);
             var key = await _db.Keys.FindAsync(id);
             if (key == null)
             {
-                _logger.LogWarning("DeleteKeyEntry failed: Key with id {Id} not found.", id);
-                return new Status<object>
+                return new Status<string>
                 {
-                    StatusCode = System.Net.HttpStatusCode.NotFound,
-                    StatusDetails = new List<string> { $"Key with id {id} not found." },
-                    Data = null
+                    StatusCode = HttpStatusCode.NotFound,
+                    StatusDetails = new List<string> { "Key not found." }
                 };
+            }
+
+            // nullify the KeyId on all events referencing this key
+            var relatedEvents = await _db.Events
+                .Where(e => e.KeyId == id)
+                .ToListAsync();
+
+            foreach (var ev in relatedEvents)
+            {
+                ev.KeyId = null;
             }
 
             _db.Keys.Remove(key);
             await _db.SaveChangesAsync();
 
-            return new Status<object>
+            _logger.LogInformation("Deleted key {KeyId}, nullified {Count} related events.", id, relatedEvents.Count);
+
+            return new Status<string>
             {
-                StatusCode = System.Net.HttpStatusCode.NoContent,
-                Data = null
+                StatusCode = HttpStatusCode.OK,
+                Data = $"Key deleted. {relatedEvents.Count} events updated."
             };
         }
     }

@@ -31,6 +31,7 @@ namespace SmartLock.DBApi.Data
                 entity.HasIndex(e => e.TagUid).IsUnique();
                 entity.Property(e => e.Name).HasMaxLength(200);
                 entity.Property(e => e.IsValid).HasDefaultValue(true);
+                entity.Property(e => e.Color).HasMaxLength(7);
             });
 
             // EventType

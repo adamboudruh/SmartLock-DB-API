@@ -1,13 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SmartLock.DBApi.Data;
 using SmartLock.DBApi.Models;
-using SmartLock.DBApi.DataAccess;
-using Microsoft.Extensions.Logging;
-using SmartLock.DBApi.Operations;
 using SmartLock.DBApi.Models.Request;
-using System.Net;
 using SmartLock.DBApi.Models.Response;
+using SmartLock.DBApi.Operations;
+using System.Net;
 
 namespace SmartLock.DBApi.Controllers
 {
@@ -33,11 +29,13 @@ namespace SmartLock.DBApi.Controllers
         {
             _logger.LogInformation("Registering event in database");
             var result = await _eventsOperations.InsertEvent(insertEvent);
+
+            // Return the whole Status<T> payload as the response body so clients receive StatusDetails and Data.
             return result.StatusCode switch
             {
-                HttpStatusCode.Created => CreatedAtAction(nameof(InsertEvent), new { id = result.Data?.EventId }, result),
-                HttpStatusCode.BadRequest => new BadRequestObjectResult(result),
-                _ => new StatusCodeResult((int)result.StatusCode)
+                HttpStatusCode.Created => StatusCode((int)result.StatusCode, result),
+                HttpStatusCode.BadRequest => BadRequest(result),
+                _ => StatusCode((int)result.StatusCode, result)
             };
         }
 
@@ -68,8 +66,8 @@ namespace SmartLock.DBApi.Controllers
             var result = await _eventsOperations.GetAllEvents();
             return result.StatusCode switch
             {
-                HttpStatusCode.OK => new OkObjectResult(result),
-                _ => new StatusCodeResult((int)result.StatusCode)
+                HttpStatusCode.OK => Ok(result),
+                _ => StatusCode((int)result.StatusCode, result)
             };
         }
 
@@ -82,8 +80,8 @@ namespace SmartLock.DBApi.Controllers
             var result = await _eventsOperations.ClearEvents();
             return result.StatusCode switch
             {
-                HttpStatusCode.NoContent => new NoContentResult(),
-                _ => new StatusCodeResult((int)result.StatusCode)
+                HttpStatusCode.NoContent => NoContent(),
+                _ => StatusCode((int)result.StatusCode, result)
             };
         }
     }

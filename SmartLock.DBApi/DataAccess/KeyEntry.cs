@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SmartLock.DBApi.DataAccess;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmartLock.DBApi.DataAccess
 {
@@ -12,6 +13,8 @@ namespace SmartLock.DBApi.DataAccess
 
         [Required]
         public string TagUid { get; set; } = null!;
+
+        public string? Color { get; set; }  // hex color, like "#FF5733"
 
         [Required]
         public bool IsValid { get; set; } = true;

@@ -10,5 +10,6 @@ namespace SmartLock.DBApi.Models.Request
     {
         public string Name { get; set; }
         public string TagUid { get; set; }
+        public string? Color { get; set; }
     }
 }

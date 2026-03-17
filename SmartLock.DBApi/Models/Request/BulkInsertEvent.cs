@@ -10,5 +10,13 @@ namespace SmartLock.DBApi.Models.Request
     public class BulkInsertEvent
     {
         public List<InsertEvent> Events { get; set; } = new();
+
+        public void ParseCreatedAtTimestamps()
+        {
+            foreach (var evt in Events)
+            {
+                evt.ParseCreatedAt(evt.CreatedAt?.ToString()); // Ensure all timestamps are converted to UTC
+            }
+        }
     }
 }

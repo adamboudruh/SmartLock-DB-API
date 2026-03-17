@@ -50,11 +50,13 @@ namespace SmartLock.DBApi.Operations
                     ? await _db.Keys.FirstOrDefaultAsync(k => k.TagUid == request.TagUid)
                     : null;
 
+            _logger.LogWarning(request.ToString());
+
             var newEvent = new DataAccess.Event
             {
                 EventTypeId = request.EventTypeId,
                 DeviceId = request.DeviceId,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = request.CreatedAt ?? DateTime.UtcNow,
                 KeyId = key?.KeyId
             };
 
