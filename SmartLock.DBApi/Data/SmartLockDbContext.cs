@@ -16,6 +16,8 @@ namespace SmartLock.DBApi.Data
         public DbSet<EventType> EventTypes { get; set; } = null!;
         public DbSet<Device> Devices { get; set; } = null!;
         public DbSet<Event> Events { get; set; } = null!;
+        public DbSet<Setting> Settings { get; set; } = null!;
+        public DbSet<DeviceSetting> DeviceSettings { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,14 +43,33 @@ namespace SmartLock.DBApi.Data
 
             // Seed EventType values from enum
             var eventTypeSeed = Enum.GetValues(typeof(EventTypes))
-                                    .Cast<EventTypes>()
-                                    .Select(e => new EventType
-                                    {
-                                        EventTypeId = (int)e,
-                                        Name = e.ToString()
-                                    })
-                                    .ToArray();
+                .Cast<EventTypes>()
+                .Select(e => new EventType
+                {
+                    EventTypeId = (int)e,
+                    Name = e.ToString()
+                })
+                .ToArray();
             modelBuilder.Entity<EventType>().HasData(eventTypeSeed);
+
+            // Setting
+            modelBuilder.Entity<Setting>(entity =>
+            {
+                entity.HasKey(s => s.SettingId);
+                entity.Property(s => s.Name).IsRequired().HasMaxLength(100);
+                entity.Property(s => s.DefaultValue).IsRequired().HasMaxLength(50);
+            });
+
+            var settingSeed = new[] // can't seed from enum because of different defaultValues
+            {
+                new Setting { SettingId = 1, Name = "AutoLockEnabled",      DefaultValue = "1" },
+                new Setting { SettingId = 2, Name = "AutoLockDelaySec",     DefaultValue = "15" },
+                new Setting { SettingId = 3, Name = "DoorOpenBuzzEnabled",  DefaultValue = "1" },
+                new Setting { SettingId = 4, Name = "DoorOpenBuzzDelaySec", DefaultValue = "60" },
+                new Setting { SettingId = 5, Name = "OpenCloseToneId",      DefaultValue = "1" },
+            };
+            modelBuilder.Entity<Setting>().HasData(settingSeed);
+
 
             // Device
             modelBuilder.Entity<Device>(entity =>
@@ -57,6 +78,26 @@ namespace SmartLock.DBApi.Data
                 entity.Property(d => d.Name).HasMaxLength(200);
                 entity.Property(d => d.DeviceSecret).IsRequired();
                 entity.Property(d => d.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // DeviceSetting
+            modelBuilder.Entity<DeviceSetting>(entity =>
+            {
+                entity.HasKey(ds => ds.DeviceSettingId);
+                entity.Property(ds => ds.Value).IsRequired().HasMaxLength(50);
+
+                entity.HasOne(ds => ds.Device)
+                    .WithMany(d => d.DeviceSettings)
+                    .HasForeignKey(ds => ds.DeviceId)
+                    .OnDelete(DeleteBehavior.Cascade); // delete device = delete its settings
+
+                entity.HasOne(ds => ds.Setting)
+                    .WithMany(s => s.DeviceSettings)
+                    .HasForeignKey(ds => ds.SettingId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // One setting per device — prevent duplicates
+                entity.HasIndex(ds => new { ds.DeviceId, ds.SettingId }).IsUnique();
             });
 
             // Event

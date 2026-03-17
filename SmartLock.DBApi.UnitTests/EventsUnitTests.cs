@@ -69,7 +69,7 @@ namespace SmartLock.DBApi.Tests
             var result = await sut.InsertEvent(new InsertEvent
             {
                 EventTypeId = (int)EventTypes.SuccessKeyUnlock,
-                TagUID = "04AB0A613E6180"
+                TagUid = "04AB0A613E6180"
             });
 
             Assert.Equal(HttpStatusCode.Created, result.StatusCode);
@@ -86,7 +86,7 @@ namespace SmartLock.DBApi.Tests
             var result = await sut.InsertEvent(new InsertEvent
             {
                 EventTypeId = (int)EventTypes.FailKeyUnlock,
-                TagUID = "DOESNOTEXIST"
+                TagUid = "DOESNOTEXIST"
             });
 
             Assert.Equal(HttpStatusCode.Created, result.StatusCode);

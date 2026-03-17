@@ -15,5 +15,6 @@ namespace SmartLock.DBApi.DataAccess
         public byte[] DeviceSecret { get; set; } = Array.Empty<byte>();
 
         public ICollection<Event>? Events { get; set; }
+        public ICollection<DeviceSetting> DeviceSettings { get; set; } = new List<DeviceSetting>();
     }
 }

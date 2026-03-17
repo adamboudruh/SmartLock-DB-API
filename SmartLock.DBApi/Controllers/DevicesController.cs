@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SmartLock.DBApi.Models;
+using SmartLock.DBApi.Models.Request;
 using SmartLock.DBApi.Models.Response;
 using SmartLock.DBApi.Operations;
 using System.Net;
@@ -48,6 +49,40 @@ namespace SmartLock.DBApi.Controllers
             {
                 HttpStatusCode.OK => Ok(result),
                 HttpStatusCode.NotFound => NotFound(result),
+                _ => StatusCode((int)result.StatusCode, result)
+            };
+        }
+
+        // GET /devices/{deviceId}/settings
+        [HttpGet("{deviceId}/settings")]
+        [ProducesResponseType(typeof(Status<List<ResponseDeviceSetting>>), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetDeviceSettings(Guid deviceId)
+        {
+            var result = await _devicesOperations.GetDeviceSettings(deviceId);
+
+            return result.StatusCode switch
+            {
+                HttpStatusCode.OK => Ok(result),
+                HttpStatusCode.NotFound => NotFound(result),
+                _ => StatusCode((int)result.StatusCode, result)
+            };
+        }
+
+        // PUT /devices/{deviceId}/settings
+        [HttpPut("{deviceId}/settings")]
+        [ProducesResponseType(typeof(Status<List<ResponseDeviceSetting>>), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> UpdateDeviceSettings(Guid deviceId, [FromBody] UpdateDeviceSettings request)
+        {
+            var result = await _devicesOperations.UpdateDeviceSettings(deviceId, request);
+
+            return result.StatusCode switch
+            {
+                HttpStatusCode.OK => Ok(result),
+                HttpStatusCode.NotFound => NotFound(result),
+                HttpStatusCode.BadRequest => BadRequest(result),
                 _ => StatusCode((int)result.StatusCode, result)
             };
         }
