@@ -16,6 +16,7 @@ namespace SmartLock.DBApi.Operations
         Task<Status<ResponseInsertEvent>> InsertEvent(InsertEvent request); 
         Task<Status<List<ResponseEvent>>> GetAllEvents();
         Task<Status<object>> ClearEvents();
+        Task<Status<int>> BulkInsertEvents(BulkInsertEvent request);
     }
     public class EventsOperations : IEventsOperations
     {
@@ -45,7 +46,9 @@ namespace SmartLock.DBApi.Operations
             _logger.LogInformation("uid: ", request.TagUid);
 
             // Find the key by TagUid
-            var key = await _db.Keys.FirstOrDefaultAsync(k => k.TagUid == request.TagUid);
+            var key = request.TagUid != null
+                    ? await _db.Keys.FirstOrDefaultAsync(k => k.TagUid == request.TagUid)
+                    : null;
 
             var newEvent = new DataAccess.Event
             {
@@ -102,5 +105,43 @@ namespace SmartLock.DBApi.Operations
             };
         }
 
+        public async Task<Status<int>> BulkInsertEvents(BulkInsertEvent request)
+        {
+            _logger.LogInformation("Bulk inserting {Count} offline events.", request.Events.Count);
+
+            var newEvents = new List<DataAccess.Event>();
+
+            foreach (var e in request.Events)
+            {
+                if (!Enum.IsDefined(typeof(EventTypes), e.EventTypeId))
+                {
+                    _logger.LogWarning("InsertEvent failed: Invalid EventTypeId.");
+                    continue;
+                }
+
+                var key = e.TagUid != null
+                    ? await _db.Keys.FirstOrDefaultAsync(k => k.TagUid == e.TagUid)
+                    : null;
+
+                newEvents.Add(new DataAccess.Event
+                {
+                    EventTypeId = e.EventTypeId,
+                    DeviceId = e.DeviceId,
+                    KeyId = key?.KeyId,
+                    CreatedAt = e.CreatedAt ?? DateTime.UtcNow
+                });
+            }
+
+            _db.Events.AddRange(newEvents);
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation("Bulk inserted {Count} events.", newEvents.Count);
+
+            return new Status<int>
+            {
+                StatusCode = System.Net.HttpStatusCode.Created,
+                Data = newEvents.Count
+            };
+        }
     }
 }

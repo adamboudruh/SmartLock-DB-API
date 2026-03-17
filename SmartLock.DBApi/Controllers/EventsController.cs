@@ -41,6 +41,24 @@ namespace SmartLock.DBApi.Controllers
             };
         }
 
+        [HttpPost("bulk")]
+        [ProducesResponseType(typeof(Status<int>), 201)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> BulkInsertEvents([FromBody] BulkInsertEvent request)
+        {
+            _logger.LogInformation("Bulk inserting {Count} offline events", request.Events.Count);
+
+            if (request.Events == null || request.Events.Count == 0)
+                return BadRequest("No events provided");
+
+            var result = await _eventsOperations.BulkInsertEvents(request);
+            return result.StatusCode switch
+            {
+                HttpStatusCode.Created => StatusCode(201, result),
+                _ => StatusCode((int)result.StatusCode, result)
+            };
+        }
+
         // GET /events
         [HttpGet]
         [ProducesResponseType(typeof(Status<List<ResponseEvent>>), 200)]
