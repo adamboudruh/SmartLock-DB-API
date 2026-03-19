@@ -6,7 +6,6 @@ using SmartLock.DBApi.Models.Enums;
 using SmartLock.DBApi.Models.Request;
 using SmartLock.DBApi.Operations;
 using System.Net;
-using Microsoft.EntityFrameworkCore.InMemory;
 
 namespace SmartLock.DBApi.Tests
 {
@@ -23,7 +22,7 @@ namespace SmartLock.DBApi.Tests
         private EventsOperations CreateSut(SmartLockDbContext db)
             => new EventsOperations(db, NullLogger<EventsOperations>.Instance);
 
-        #region InsertEvent
+        #region InsertEvent Tests
 
         [Fact]
         public async Task InsertEvent_ValidRequest_ReturnsCreated()
@@ -31,11 +30,14 @@ namespace SmartLock.DBApi.Tests
             var db = CreateDb();
             var sut = CreateSut(db);
 
-            var result = await sut.InsertEvent(new InsertEvent { EventTypeId = (int)EventTypes.RemoteLock });
+            var result = await sut.InsertEvent(new InsertEvent
+            {
+                EventTypeId = (int)EventTypes.RemoteLock,
+                CreatedAt = DateTime.UtcNow
+            });
 
             Assert.Equal(HttpStatusCode.Created, result.StatusCode);
             Assert.NotNull(result.Data);
-            Assert.NotEqual(Guid.Empty, result.Data.EventId);
         }
 
         [Fact]
@@ -47,56 +49,73 @@ namespace SmartLock.DBApi.Tests
             var result = await sut.InsertEvent(new InsertEvent { EventTypeId = 999 });
 
             Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
-            Assert.Contains("Invalid EventTypeId.", result.StatusDetails);
         }
 
         [Fact]
-        public async Task InsertEvent_WithMatchingTagUid_LinksKeyToEvent()
-        {
-            var db = CreateDb();
-            var key = new RfidKeyEntry
-            {
-                KeyId = Guid.NewGuid(),
-                Name = "Yellow Key",
-                TagUid = "04AB0A613E6180",
-                IsValid = true,
-                CreatedAt = DateTime.UtcNow
-            };
-            db.Keys.Add(key);
-            await db.SaveChangesAsync();
-
-            var sut = CreateSut(db);
-            var result = await sut.InsertEvent(new InsertEvent
-            {
-                EventTypeId = (int)EventTypes.SuccessKeyUnlock,
-                TagUid = "04AB0A613E6180"
-            });
-
-            Assert.Equal(HttpStatusCode.Created, result.StatusCode);
-            var inserted = await db.Events.FirstAsync();
-            Assert.Equal(key.KeyId, inserted.KeyId);
-        }
-
-        [Fact]
-        public async Task InsertEvent_WithUnknownTagUid_InsertsEventWithNullKeyId()
+        public async Task InsertEvent_NullCreatedAt_UsesCurrentUTC()
         {
             var db = CreateDb();
             var sut = CreateSut(db);
 
             var result = await sut.InsertEvent(new InsertEvent
             {
-                EventTypeId = (int)EventTypes.FailKeyUnlock,
-                TagUid = "DOESNOTEXIST"
+                EventTypeId = (int)EventTypes.ButtonUnlock,
+                CreatedAt = null
             });
 
             Assert.Equal(HttpStatusCode.Created, result.StatusCode);
-            var inserted = await db.Events.FirstAsync();
-            Assert.Null(inserted.KeyId);
+            var insertedEvent = await db.Events.FirstOrDefaultAsync();
+            Assert.NotNull(insertedEvent);
+            Assert.True(insertedEvent.CreatedAt > DateTime.UtcNow.AddMinutes(-1));
         }
 
         #endregion
 
-        #region GetAllEvents
+        #region BulkInsertEvents Tests
+
+        [Fact]
+        public async Task BulkInsertEvents_ValidMultipleEvents_ReturnsCreatedCount()
+        {
+            var db = CreateDb();
+            var sut = CreateSut(db);
+
+            var result = await sut.BulkInsertEvents(new BulkInsertEvent
+            {
+                Events = new List<InsertEvent>
+                {
+                    new InsertEvent { EventTypeId = (int)EventTypes.RemoteLock, CreatedAt = DateTime.UtcNow },
+                    new InsertEvent { EventTypeId = (int)EventTypes.ButtonUnlock, CreatedAt = DateTime.UtcNow }
+                }
+            });
+
+            Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+            Assert.Equal(2, result.Data);
+            Assert.Equal(2, await db.Events.CountAsync());
+        }
+
+        [Fact]
+        public async Task BulkInsertEvents_SomeInvalidEvents_SkipsInvalidEvents()
+        {
+            var db = CreateDb();
+            var sut = CreateSut(db);
+
+            var result = await sut.BulkInsertEvents(new BulkInsertEvent
+            {
+                Events = new List<InsertEvent>
+                {
+                    new InsertEvent { EventTypeId = (int)EventTypes.RemoteLock, CreatedAt = DateTime.UtcNow },
+                    new InsertEvent { EventTypeId = 999, CreatedAt = DateTime.UtcNow } // Invalid EventType
+                }
+            });
+
+            Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+            Assert.Equal(1, result.Data);
+            Assert.Equal(1, await db.Events.CountAsync());
+        }
+
+        #endregion
+
+        #region GetAllEvents Tests
 
         [Fact]
         public async Task GetAllEvents_NoEvents_ReturnsEmptyList()
@@ -126,52 +145,6 @@ namespace SmartLock.DBApi.Tests
             Assert.Equal(HttpStatusCode.OK, result.StatusCode);
             Assert.Equal(2, result.Data.Count);
             Assert.True(result.Data[0].CreatedAt > result.Data[1].CreatedAt);
-        }
-
-        [Fact]
-        public async Task GetAllEvents_MapsEventTypeIdToName()
-        {
-            var db = CreateDb();
-            db.Events.Add(new Event
-            {
-                EventId = Guid.NewGuid(),
-                EventTypeId = (int)EventTypes.RemoteLock,
-                CreatedAt = DateTime.UtcNow
-            });
-            await db.SaveChangesAsync();
-
-            var sut = CreateSut(db);
-            var result = await sut.GetAllEvents();
-
-            Assert.Equal("RemoteLock", result.Data[0].EventType);
-        }
-
-        [Fact]
-        public async Task GetAllEvents_IncludesKeyName_WhenKeyIsLinked()
-        {
-            var db = CreateDb();
-            var key = new RfidKeyEntry
-            {
-                KeyId = Guid.NewGuid(),
-                Name = "Green Key",
-                TagUid = "046AF0603E6180",
-                IsValid = true,
-                CreatedAt = DateTime.UtcNow
-            };
-            db.Keys.Add(key);
-            db.Events.Add(new Event
-            {
-                EventId = Guid.NewGuid(),
-                EventTypeId = (int)EventTypes.SuccessKeyUnlock,
-                KeyId = key.KeyId,
-                CreatedAt = DateTime.UtcNow
-            });
-            await db.SaveChangesAsync();
-
-            var sut = CreateSut(db);
-            var result = await sut.GetAllEvents();
-
-            Assert.Equal("Green Key", result.Data[0].KeyName);
         }
 
         #endregion

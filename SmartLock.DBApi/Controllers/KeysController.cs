@@ -39,6 +39,7 @@ namespace SmartLock.DBApi.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(Status<ResponseInsertKeyEntry>), 201)]
         [ProducesResponseType(typeof(Status<ResponseInsertKeyEntry>), 400)]
+        [ProducesResponseType(typeof(Status<ResponseInsertKeyEntry>), 409)]
         public async Task<IActionResult> Create([FromBody] InsertKeyEntry insertKeyEntry)
         {
             _logger.LogInformation("Creating new key entry");
@@ -48,6 +49,23 @@ namespace SmartLock.DBApi.Controllers
                 HttpStatusCode.OK => Ok(result),
                 HttpStatusCode.Created => StatusCode((int)result.StatusCode, result),
                 HttpStatusCode.BadRequest => BadRequest(result),
+                HttpStatusCode.Conflict => Conflict(result),
+                _ => StatusCode((int)result.StatusCode, result)
+            };
+        }
+
+        // DELETE /keys/{id}
+        [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> DeleteKey(Guid id)
+        {
+            _logger.LogInformation("Deleting key with id {Id}", id);
+            var result = await _keysOperations.DeleteKeyEntry(id);
+            return result.StatusCode switch
+            {
+                HttpStatusCode.NoContent => NoContent(),
+                HttpStatusCode.NotFound => NotFound(result),
                 _ => StatusCode((int)result.StatusCode, result)
             };
         }

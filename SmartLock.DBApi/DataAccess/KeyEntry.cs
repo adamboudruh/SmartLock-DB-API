@@ -1,5 +1,4 @@
-﻿using SmartLock.DBApi.DataAccess;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace SmartLock.DBApi.DataAccess
 {

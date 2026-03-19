@@ -24,12 +24,19 @@ builder.Services.AddSwaggerGen();
 // DbContext: expects "DefaultConnection" in appsettings
 var connectionString = configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<SmartLockDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null   // null = use EF Core's default transient error list
+        );
+    }));
 
 // Register operations
 builder.Services.AddScoped<IKeysOperations, KeysOperations>();
 builder.Services.AddScoped<IEventsOperations, EventsOperations>();
-builder.Services.AddScoped<IDevicesOperations, DevicesOperations>(); 
+builder.Services.AddScoped<IDevicesOperations, DevicesOperations>();
 
 // Allow local dev CORS (adjust for production)
 builder.Services.AddCors(options =>
@@ -54,7 +61,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = true,
             ValidIssuer = "smartlock-backend",
             ValidateAudience = false,
-            ValidateLifetime = true,  // enforces expiresIn: '30s'
+            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new RsaSecurityKey(rsa),
         };
@@ -79,13 +86,12 @@ try
         {
             logger.LogInformation("APPLY_MIGRATIONS is true — attempting to apply pending EF Core migrations...");
             var db = scope.ServiceProvider.GetRequiredService<SmartLockDbContext>();
-            db.Database.Migrate();
+            await db.Database.MigrateAsync(); // async avoids blocking the startup thread
             logger.LogInformation("EF Core migrations applied successfully.");
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred while applying migrations on startup.");
-            // Rethrow to avoid running app in an inconsistent state. Remove throw if you prefer to continue.
             throw;
         }
     }

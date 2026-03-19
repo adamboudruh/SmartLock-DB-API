@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SmartLock.DBApi.Models.Request
+﻿namespace SmartLock.DBApi.Models.Request
 {
     public class InsertKeyEntry
     {

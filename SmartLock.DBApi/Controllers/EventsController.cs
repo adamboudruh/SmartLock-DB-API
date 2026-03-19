@@ -46,13 +46,11 @@ namespace SmartLock.DBApi.Controllers
         {
             _logger.LogInformation("Bulk inserting {Count} offline events", request.Events.Count);
 
-            if (request.Events == null || request.Events.Count == 0)
-                return BadRequest("No events provided");
-
             var result = await _eventsOperations.BulkInsertEvents(request);
             return result.StatusCode switch
             {
                 HttpStatusCode.Created => StatusCode(201, result),
+                HttpStatusCode.BadRequest => BadRequest(result),
                 _ => StatusCode((int)result.StatusCode, result)
             };
         }

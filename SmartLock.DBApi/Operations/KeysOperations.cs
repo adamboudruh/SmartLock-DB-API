@@ -135,7 +135,7 @@ namespace SmartLock.DBApi.Operations
 
             return new Status<string>
             {
-                StatusCode = HttpStatusCode.OK,
+                StatusCode = HttpStatusCode.NoContent,
                 Data = $"Key deleted. {relatedEvents.Count} events updated."
             };
         }

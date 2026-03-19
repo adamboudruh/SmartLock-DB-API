@@ -1,13 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 using SmartLock.DBApi.Data;
-using SmartLock.DBApi.DataAccess;
 using SmartLock.DBApi.Models;
 using SmartLock.DBApi.Models.Enums;
 using SmartLock.DBApi.Models.Request;
 using SmartLock.DBApi.Models.Response;
-using System.Formats.Asn1;
 
 namespace SmartLock.DBApi.Operations
 {
@@ -43,14 +39,11 @@ namespace SmartLock.DBApi.Operations
                     Data = null
                 };
             }
-            _logger.LogInformation("uid: ", request.TagUid);
 
             // Find the key by TagUid
             var key = request.TagUid != null
                     ? await _db.Keys.FirstOrDefaultAsync(k => k.TagUid == request.TagUid)
                     : null;
-
-            _logger.LogWarning(request.ToString());
 
             var newEvent = new DataAccess.Event
             {
@@ -77,8 +70,9 @@ namespace SmartLock.DBApi.Operations
         {
             _logger.LogInformation("Fetching all events from database.");
             var events = await _db.Events
-                .Include(e => e.Key)           // ← join key name if present
+                .Include(e => e.Key)           // join key name if present
                 .OrderByDescending(e => e.CreatedAt)
+                .Take(200) // grab 200 latest events to prevent overload, pagination in future
                 .ToListAsync();
 
             return new Status<List<ResponseEvent>>
@@ -109,6 +103,15 @@ namespace SmartLock.DBApi.Operations
 
         public async Task<Status<int>> BulkInsertEvents(BulkInsertEvent request)
         {
+            if (request.Events == null || request.Events.Count == 0)
+            {
+                return new Status<int>
+                {
+                    StatusCode = System.Net.HttpStatusCode.BadRequest,
+                    StatusDetails = new List<string> { "No events provided." }
+                };
+            }
+
             _logger.LogInformation("Bulk inserting {Count} offline events.", request.Events.Count);
 
             var newEvents = new List<DataAccess.Event>();
